@@ -1,0 +1,238 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Mod id="5616515610651" version="2">
+  <Properties>
+    <Name>TXH Balance Integrated</Name>
+    <Description>Integrated Civilization VI balance mod with BCY city-center rules, LIJIA project tuning, siege and economy reworks, and two new late-game units.</Description>
+    <Teaser>Rebalances units, buildings, specialists, Babylon and Yongle, adds BCY options, and introduces a nuclear carrier plus self-propelled artillery.</Teaser>
+    <Authors>TXH, oh_black</Authors>
+    <Version>2.0</Version>
+    <CompatibleVersions>2.0</CompatibleVersions>
+  </Properties>
+
+  <Dependencies>
+    <Mod id="1B28771A-C749-434B-9053-D1380C553DE9" title="Expansion: Rise and Fall" />
+    <Mod id="4873eb62-8ccc-4574-b784-dda455e74e68" title="Expansion: Gathering Storm" />
+  </Dependencies>
+
+  <ActionCriteria>
+    <Criteria id="pen_wonder_enhanced">
+      <ModInUse>6D5967C4-9290-7323-BABB-C6E57FC3C056</ModInUse>
+    </Criteria>
+
+    <Criteria id="core_bbcc">
+      <ConfigurationValueMatches inverse="1">
+        <Group>Game</Group>
+        <ConfigurationId>BBCC_SETTING</ConfigurationId>
+        <Value>-1</Value>
+      </ConfigurationValueMatches>
+    </Criteria>
+
+    <Criteria id="bbcc_cap">
+      <ConfigurationValueMatches>
+        <Group>Game</Group>
+        <ConfigurationId>BBCC_SETTING</ConfigurationId>
+        <Value>1</Value>
+      </ConfigurationValueMatches>
+    </Criteria>
+
+    <Criteria id="no_rng_bbcc">
+      <ConfigurationValueMatches>
+        <Group>Game</Group>
+        <ConfigurationId>BBCC_SETTING_YIELD</ConfigurationId>
+        <Value>1</Value>
+      </ConfigurationValueMatches>
+    </Criteria>
+  </ActionCriteria>
+
+  <FrontEndActions>
+    <UpdateDatabase id="TXHBalance_BCY_OptionsConfig">
+      <Properties>
+        <LoadOrder>1000</LoadOrder>
+      </Properties>
+      <File>BCY/Config/options.xml</File>
+    </UpdateDatabase>
+
+    <UpdateText id="TXHBalance_Balance_Text_FrontEnd">
+      <Properties>
+        <LoadOrder>100000000</LoadOrder>
+      </Properties>
+      <File>Balance/Text/balance_text.xml</File>
+    </UpdateText>
+
+    <UpdateText id="TXHBalance_Compat_PenWonderText_FrontEnd">
+      <Properties>
+        <LoadOrder>100000002</LoadOrder>
+      </Properties>
+      <Criteria>pen_wonder_enhanced</Criteria>
+      <File>Compat/Text/pen_wonder_compat.xml</File>
+    </UpdateText>
+  </FrontEndActions>
+
+  <InGameActions>
+    <AddGameplayScripts id="TXHBalance_BCY_GameplayEntry">
+      <File>Scripts/txh_bcy_gameplay.lua</File>
+    </AddGameplayScripts>
+
+    <AddUserInterfaces id="TXHBalance_BCY_NoRngBridge">
+      <Properties>
+        <Context>InGame</Context>
+      </Properties>
+      <Criteria>no_rng_bbcc</Criteria>
+      <File>Scripts/txh_bcy_bridge.xml</File>
+    </AddUserInterfaces>
+
+    <UpdateArt id="TXHBalance_NewUnits_Art">
+      <File>TXHBalance_Units.dep</File>
+    </UpdateArt>
+
+    <UpdateDatabase id="TXHBalance_NewUnits_Gameplay">
+      <Properties>
+        <LoadOrder>90</LoadOrder>
+      </Properties>
+      <File>NewUnits/Database/new_units_gameplay.xml</File>
+    </UpdateDatabase>
+
+    <UpdateDatabase id="TXHBalance_Balance_UnitsAndPrereqs">
+      <Properties>
+        <LoadOrder>100</LoadOrder>
+      </Properties>
+      <File>Balance/Database/01_units_and_prereqs.sql</File>
+    </UpdateDatabase>
+
+    <UpdateDatabase id="TXHBalance_Balance_SiegeRulesAndPolicies">
+      <Properties>
+        <LoadOrder>101</LoadOrder>
+      </Properties>
+      <File>Balance/Database/02_siege_rules_and_policies.sql</File>
+    </UpdateDatabase>
+
+    <UpdateDatabase id="TXHBalance_Balance_EconomyAndInfrastructure">
+      <Properties>
+        <LoadOrder>102</LoadOrder>
+      </Properties>
+      <File>Balance/Database/03_economy_and_infrastructure.sql</File>
+    </UpdateDatabase>
+
+    <UpdateDatabase id="TXHBalance_Balance_SpecialistsAndMisc">
+      <Properties>
+        <LoadOrder>103</LoadOrder>
+      </Properties>
+      <File>Balance/Database/04_specialists_and_misc.sql</File>
+    </UpdateDatabase>
+
+    <UpdateDatabase id="TXHBalance_Balance_CivilizationTraits">
+      <Properties>
+        <LoadOrder>104</LoadOrder>
+      </Properties>
+      <File>Balance/Database/05_civilization_traits.sql</File>
+    </UpdateDatabase>
+
+    <UpdateDatabase id="TXHBalance_Balance_LeaderProjects">
+      <Properties>
+        <LoadOrder>105</LoadOrder>
+      </Properties>
+      <File>Balance/Database/06_leader_projects.sql</File>
+    </UpdateDatabase>
+
+    <UpdateDatabase id="TXHBalance_BCY_ConfigValues">
+      <Properties>
+        <LoadOrder>110</LoadOrder>
+      </Properties>
+      <Criteria>core_bbcc</Criteria>
+      <File>BCY/Database/10_config_values.sql</File>
+    </UpdateDatabase>
+
+    <UpdateDatabase id="TXHBalance_BCY_CoreRules">
+      <Properties>
+        <LoadOrder>111</LoadOrder>
+      </Properties>
+      <Criteria>core_bbcc</Criteria>
+      <File>BCY/Database/11_core_rules.sql</File>
+    </UpdateDatabase>
+
+    <UpdateDatabase id="TXHBalance_BCY_NoRngRules">
+      <Properties>
+        <LoadOrder>112</LoadOrder>
+      </Properties>
+      <Criteria>core_bbcc</Criteria>
+      <Criteria>no_rng_bbcc</Criteria>
+      <File>BCY/Database/12_no_rng_rules.sql</File>
+    </UpdateDatabase>
+
+    <UpdateDatabase id="TXHBalance_BCY_RuntimeSupport">
+      <Properties>
+        <LoadOrder>113</LoadOrder>
+      </Properties>
+      <Criteria>core_bbcc</Criteria>
+      <Criteria>no_rng_bbcc</Criteria>
+      <File>BCY/Database/13_runtime_support.sql</File>
+    </UpdateDatabase>
+
+    <UpdateDatabase id="TXHBalance_BCY_CapitalOnly">
+      <Properties>
+        <LoadOrder>114</LoadOrder>
+      </Properties>
+      <Criteria>core_bbcc</Criteria>
+      <Criteria>bbcc_cap</Criteria>
+      <File>BCY/Database/14_capital_only.sql</File>
+    </UpdateDatabase>
+
+    <UpdateIcons id="TXHBalance_NewUnits_Icons">
+      <Properties>
+        <LoadOrder>150</LoadOrder>
+      </Properties>
+      <File>NewUnits/UI/new_units_icons.xml</File>
+    </UpdateIcons>
+
+    <UpdateText id="TXHBalance_Balance_Text_InGame">
+      <Properties>
+        <LoadOrder>100000000</LoadOrder>
+      </Properties>
+      <File>Balance/Text/balance_text.xml</File>
+    </UpdateText>
+
+    <UpdateText id="TXHBalance_NewUnits_Text_InGame">
+      <Properties>
+        <LoadOrder>100000001</LoadOrder>
+      </Properties>
+      <File>NewUnits/Text/new_units_text.xml</File>
+    </UpdateText>
+
+    <UpdateText id="TXHBalance_Compat_PenWonderText_InGame">
+      <Properties>
+        <LoadOrder>100000002</LoadOrder>
+      </Properties>
+      <Criteria>pen_wonder_enhanced</Criteria>
+      <File>Compat/Text/pen_wonder_compat.xml</File>
+    </UpdateText>
+  </InGameActions>
+
+  <Files>
+    <File>Balance/Database/01_units_and_prereqs.sql</File>
+    <File>Balance/Database/02_siege_rules_and_policies.sql</File>
+    <File>Balance/Database/03_economy_and_infrastructure.sql</File>
+    <File>Balance/Database/04_specialists_and_misc.sql</File>
+    <File>Balance/Database/05_civilization_traits.sql</File>
+    <File>Balance/Database/06_leader_projects.sql</File>
+    <File>Balance/Text/balance_text.xml</File>
+    <File>BCY/Config/options.xml</File>
+    <File>BCY/Database/10_config_values.sql</File>
+    <File>BCY/Database/11_core_rules.sql</File>
+    <File>BCY/Database/12_no_rng_rules.sql</File>
+    <File>BCY/Database/13_runtime_support.sql</File>
+    <File>BCY/Database/14_capital_only.sql</File>
+    <File>BCY/Scripts/bcy_lookup.lua</File>
+    <File>BCY/Scripts/bcy_city_built.lua</File>
+    <File>BCY/Scripts/bcy_recalculate.lua</File>
+    <File>BCY/Scripts/bcy_init.lua</File>
+    <File>Compat/Text/pen_wonder_compat.xml</File>
+    <File>NewUnits/Database/new_units_gameplay.xml</File>
+    <File>NewUnits/Text/new_units_text.xml</File>
+    <File>NewUnits/UI/new_units_icons.xml</File>
+    <File>Scripts/txh_bcy_gameplay.lua</File>
+    <File>Scripts/txh_bcy_bridge.xml</File>
+    <File>Scripts/txh_bcy_bridge.lua</File>
+    <File>TXHBalance_Units.dep</File>
+    <File>ArtDefs/Units.artdef</File>
+  </Files>
+</Mod>

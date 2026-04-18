@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<GameData>
+  <LocalizedText>
+    <Row Tag="LOC_UNIT_AIRCRAFT_CARRIER_PRO_NAME" Language="zh_Hans_CN">
+      <Text>核动力航母</Text>
+    </Row>
+    <Row Tag="LOC_UNIT_AIRCRAFT_CARRIER_PRO_DESCRIPTION" Language="zh_Hans_CN">
+      <Text>信息时代海军运输单位。</Text>
+    </Row>
+    <Row Tag="LOC_UNIT_AIRCRAFT_CARRIER_PRO_NAME" Language="en_US">
+      <Text>Nuclear-Powered Aircraft Carrier</Text>
+    </Row>
+    <Row Tag="LOC_UNIT_AIRCRAFT_CARRIER_PRO_DESCRIPTION" Language="en_US">
+      <Text>An advanced naval carrier unit for the Information Era.</Text>
+    </Row>
+
+    <Row Tag="LOC_UNIT_MACHINE_GUN_PRO_NAME" Language="zh_Hans_CN">
+      <Text>自行火炮</Text>
+    </Row>
+    <Row Tag="LOC_UNIT_MACHINE_GUN_PRO_DESCRIPTION" Language="zh_Hans_CN">
+      <Text>信息时代远程单位。</Text>
+    </Row>
+    <Row Tag="LOC_UNIT_MACHINE_GUN_PRO_NAME" Language="en_US">
+      <Text>Self-Propelled Artillery</Text>
+    </Row>
+    <Row Tag="LOC_UNIT_MACHINE_GUN_PRO_DESCRIPTION" Language="en_US">
+      <Text>A late-game ranged land unit.</Text>
+    </Row>
+  </LocalizedText>
+</GameData>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<GameData>
+  <LocalizedText>
+    <Replace Tag="LOC_BUILDING_HANGING_GARDENS_DESCRIPTION" Language="zh_Hans_CN">
+      <Text>所有城市发展加速15%。此城市+1 [ICON_Housing] 住房，6格内所有城市+1 [ICON_Housing] 住房。+2 [ICON_Food] 食物，+2 [ICON_Amenities] 宜居度。河流为圣地、学院、商业中心、剧院广场和工业区提供标准相邻加成。[NEWLINE][NEWLINE]必须建造在河流旁。</Text>
+    </Replace>
+    <Replace Tag="LOC_BUILDING_HANGING_GARDENS_DESCRIPTION" Language="en_US">
+      <Text>City Growth is increased by 15% in all cities. +1 [ICON_Housing] Housing in this city and +1 [ICON_Housing] Housing to all cities within 6 tiles. +2 [ICON_Food] Food and +2 [ICON_Amenities] Amenities. Rivers provide a standard adjacency bonus to Holy Sites, Campuses, Commercial Hubs, Theater Squares, and Industrial Zones.[NEWLINE][NEWLINE]Must be built next to a River.</Text>
+    </Replace>
+  </LocalizedText>
+</GameData>

@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<GameData>
+  <!-- 新单位类型 -->
+  <Types>
+    <Row Type="UNIT_AIRCRAFT_CARRIER_PRO" Kind="KIND_UNIT" />
+    <Row Type="UNIT_MACHINE_GUN_PRO" Kind="KIND_UNIT" />
+  </Types>
+
+  <!-- AI 行为 -->
+  <UnitAiInfos>
+    <Row UnitType="UNIT_AIRCRAFT_CARRIER_PRO" AiType="UNITAI_COMBAT" />
+    <Row UnitType="UNIT_AIRCRAFT_CARRIER_PRO" AiType="UNITTYPE_NAVAL" />
+    <Row UnitType="UNIT_MACHINE_GUN_PRO" AiType="UNITTYPE_LAND_COMBAT" />
+    <Row UnitType="UNIT_MACHINE_GUN_PRO" AiType="UNITTYPE_RANGED" />
+    <Row UnitType="UNIT_MACHINE_GUN_PRO" AiType="UNITAI_COMBAT" />
+  </UnitAiInfos>
+
+  <!-- 分类标签 -->
+  <TypeTags>
+    <Row Type="UNIT_AIRCRAFT_CARRIER_PRO" Tag="CLASS_NAVAL_CARRIER" />
+    <Row Type="UNIT_MACHINE_GUN_PRO" Tag="CLASS_RANGED" />
+  </TypeTags>
+
+  <!-- 单位定义 -->
+  <Units>
+    <Row
+      UnitType="UNIT_AIRCRAFT_CARRIER_PRO"
+      Cost="600"
+      Maintenance="7"
+      BaseMoves="4"
+      BaseSightRange="2"
+      ZoneOfControl="true"
+      Domain="DOMAIN_SEA"
+      Combat="90"
+      AntiAirCombat="110"
+      FormationClass="FORMATION_CLASS_NAVAL"
+      PromotionClass="PROMOTION_CLASS_NAVAL_CARRIER"
+      AdvisorType="ADVISOR_CONQUEST"
+      Name="LOC_UNIT_AIRCRAFT_CARRIER_PRO_NAME"
+      Description="LOC_UNIT_AIRCRAFT_CARRIER_PRO_DESCRIPTION"
+      PurchaseYield="YIELD_GOLD"
+      PseudoYieldType="PSEUDOYIELD_UNIT_NAVAL_COMBAT"
+      PrereqTech="TECH_TELECOMMUNICATIONS"
+      AirSlots="3"
+    />
+    <Row
+      UnitType="UNIT_MACHINE_GUN_PRO"
+      Cost="540"
+      Maintenance="6"
+      BaseMoves="3"
+      BaseSightRange="2"
+      ZoneOfControl="false"
+      Domain="DOMAIN_LAND"
+      Combat="70"
+      RangedCombat="88"
+      Range="3"
+      FormationClass="FORMATION_CLASS_LAND_COMBAT"
+      PromotionClass="PROMOTION_CLASS_RANGED"
+      AdvisorType="ADVISOR_CONQUEST"
+      Name="LOC_UNIT_MACHINE_GUN_PRO_NAME"
+      Description="LOC_UNIT_MACHINE_GUN_PRO_DESCRIPTION"
+      PurchaseYield="YIELD_GOLD"
+      PrereqTech="TECH_ADVANCED_BALLISTICS"
+    />
+  </Units>
+
+  <!-- 升级链 -->
+  <UnitUpgrades>
+    <Row Unit="UNIT_AIRCRAFT_CARRIER" UpgradeUnit="UNIT_AIRCRAFT_CARRIER_PRO" />
+    <Row Unit="UNIT_MACHINE_GUN" UpgradeUnit="UNIT_MACHINE_GUN_PRO" />
+  </UnitUpgrades>
+</GameData>
