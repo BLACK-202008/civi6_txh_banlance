@@ -108,6 +108,10 @@ SPOT_CHECKS = {
         "Balance/Database/03_economy_and_infrastructure.sql",
         "TXH_WATERMILL_PRODUCTION_FARM",
     ],
+    "GRANARY housing and no-fresh-water rules present": [
+        "Balance/Database/03_economy_and_infrastructure.sql",
+        "TXH_GRANARY_NO_FRESH_WATER_HOUSING",
+    ],
     "BABYLON trait rebalance present": [
         "Balance/Database/05_civilization_traits.sql",
         "TRAIT_CIVILIZATION_BABYLON",
@@ -232,6 +236,21 @@ def main() -> int:
             ok(label)
         else:
             failures.append(f"{label}: did not find {needle!r} in {relative_path}")
+
+    granary_sql = (MOD_ROOT / "Balance/Database/03_economy_and_infrastructure.sql").read_text(encoding="utf-8")
+    granary_checks = {
+        "granary food is +2": "UPDATE Building_YieldChanges SET YieldChange=2 WHERE BuildingType='BUILDING_GRANARY' AND YieldType='YIELD_FOOD';",
+        "granary housing is +2": "UPDATE Buildings SET Housing=2 WHERE BuildingType='BUILDING_GRANARY';",
+        "granary no-fresh-water housing requirement exists": "REQUIRES_TXH_GRANARY_CITY_NOT_FRESH_WATER",
+        "granary no-fresh-water housing modifier exists": "TXH_GRANARY_NO_FRESH_WATER_HOUSING",
+        "granary no-fresh-water housing amount is +1": "('TXH_GRANARY_NO_FRESH_WATER_HOUSING', 'Amount', '1')",
+        "granary no-fresh-water rule uses inverse fresh water check": "('REQUIRES_TXH_GRANARY_CITY_NOT_FRESH_WATER', 'REQUIREMENT_PLOT_IS_FRESH_WATER', 1)",
+    }
+    for label, needle in granary_checks.items():
+        if needle in granary_sql:
+            ok(label)
+        else:
+            failures.append(f"{label}: missing {needle!r} in Balance/Database/03_economy_and_infrastructure.sql")
 
     if failures:
         for message in failures:
