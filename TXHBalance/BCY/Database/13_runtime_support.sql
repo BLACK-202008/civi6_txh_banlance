@@ -1,4 +1,24 @@
 -- =========================================================
+
+-- Bidirectional runtime corrections reuse one repeatable +/-1 effect per
+-- yield. Their persistent Lua net ledger has no 20-instance naming limit.
+-- Keep the legacy numbered removals below so existing saves can migrate.
+INSERT OR IGNORE INTO Modifiers(ModifierId, ModifierType, SubjectRequirementSetId, Repeatable)
+SELECT 'TXH_BCY_RUNTIME_' || direction || '_' || YieldType || '_BBCC',
+       'MODIFIER_CITY_PLOT_YIELDS_ADJUST_PLOT_YIELD', 'REQSET_PLOT_IS_CITY_CENTER_BBCC', 1
+FROM (SELECT 'ADD' AS direction UNION ALL SELECT 'REMOVE')
+CROSS JOIN Flat_CutOffYieldValues;
+
+INSERT OR IGNORE INTO ModifierArguments(ModifierId, Name, Value)
+SELECT 'TXH_BCY_RUNTIME_' || direction || '_' || YieldType || '_BBCC', 'YieldType', YieldType
+FROM (SELECT 'ADD' AS direction UNION ALL SELECT 'REMOVE')
+CROSS JOIN Flat_CutOffYieldValues;
+
+INSERT OR IGNORE INTO ModifierArguments(ModifierId, Name, Value)
+SELECT 'TXH_BCY_RUNTIME_' || direction || '_' || YieldType || '_BBCC', 'Amount',
+       CASE WHEN direction = 'ADD' THEN 1 ELSE -1 END
+FROM (SELECT 'ADD' AS direction UNION ALL SELECT 'REMOVE')
+CROSS JOIN Flat_CutOffYieldValues;
 -- Runtime support modifiers for BCY No RNG recalculation.
 -- 预建可由 Lua 动态附加的负产出修正，用于 No RNG 模式。
 -- =========================================================

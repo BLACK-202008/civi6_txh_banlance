@@ -3,6 +3,7 @@
 TXHBalanceBCY = TXHBalanceBCY or {}
 
 local state = {
+  recalculating = {},
   terrain_yields = {},
   resource_yields = {},
   feature_yields = {},
@@ -304,9 +305,21 @@ local function apply_city_built_bonus(city, yield_id, base_bonus_count, strategi
   end
 end
 
+local FOUNDING_BONUS_PROPERTY = "TXH_BCY_FOUNDING_BONUS_APPLIED"
+
+local function begin_founding_bonus(city)
+  if city:GetProperty(FOUNDING_BONUS_PROPERTY) == 1 then
+    return false
+  end
+  -- Persist before attaching, so a repeated or reentrant CityBuilt event cannot
+  -- attach the same founding package again.
+  city:SetProperty(FOUNDING_BONUS_PROPERTY, 1)
+  return true
+end
+
 function TXHBalanceBCY.OnCityBuiltLegacy(player_id, city_id, x, y)
   local context = build_city_context(player_id, city_id, x, y, {0, 1})
-  if context == nil then
+  if context == nil or not begin_founding_bonus(context.city) then
     return
   end
 
@@ -355,7 +368,7 @@ end
 
 function TXHBalanceBCY.OnCityBuiltStandard(player_id, city_id, x, y)
   local context = build_city_context(player_id, city_id, x, y, nil)
-  if context == nil then
+  if context == nil or not begin_founding_bonus(context.city) then
     return
   end
 
@@ -440,16 +453,67 @@ function TXHBalanceBCY.OnCityBuiltStandard(player_id, city_id, x, y)
 end
 
 function TXHBalanceBCY.OnGameplayAdjustCityYield(player_id, parameters)
+  if type(parameters) ~= "table" or type(player_id) ~= "number" or player_id < 0 then
+    return
+  end
+  if parameters.iOwnerId ~= player_id or Players[player_id] == nil then
+    return
+  end
+  local x, y = parameters.iX, parameters.iY
+  if type(x) ~= "number" or type(y) ~= "number" or x ~= x or y ~= y
+    or x < 0 or y < 0 or x % 1 ~= 0 or y % 1 ~= 0 then
+    return
+  end
+  local city = CityManager.GetCityAt(x, y)
+  if city == nil or city:GetOwner() ~= player_id then
+    return
+  end
   TXHBalanceBCY.RecalculateMapYield(parameters.iX, parameters.iY)
 end
 
+local function runtime_property(yield_id)
+  return "TXH_BCY_NET_" .. GameInfo.Yields[yield_id].YieldType
+end
+
+local function bind_runtime_ledger(plot, city)
+  local owner, city_id = city:GetOwner(), city:GetID()
+  local previous_owner = plot:GetProperty("TXH_BCY_LEDGER_OWNER")
+  local previous_city = plot:GetProperty("TXH_BCY_LEDGER_CITY")
+  local first_bind = plot:GetProperty("TXH_BCY_LEDGER_VERSION") == nil
+  local changed_city = previous_owner ~= owner or previous_city ~= city_id
+  if first_bind or changed_city then
+    for i = 0, 5 do
+      -- The old SQL defines only removal IDs 1..20. Larger old EXTRA values
+      -- claimed nonexistent modifiers; FIRAXIS values are historical peaks.
+      -- A captured/refounded city must not reuse the former city's ledger.
+      local removed = 0
+      if first_bind and previous_owner == nil and previous_city == nil then
+        removed = tonumber(plot:GetProperty(TXHBalanceBCY.ExtraYieldPropertyName(i))) or 0
+        removed = math.max(0, math.min(20, math.floor(removed)))
+      end
+      plot:SetProperty(runtime_property(i), -removed)
+      plot:SetProperty(TXHBalanceBCY.FiraxisYieldPropertyName(i), nil)
+    end
+    plot:SetProperty("TXH_BCY_LEDGER_VERSION", 1)
+    plot:SetProperty("TXH_BCY_LEDGER_OWNER", owner)
+    plot:SetProperty("TXH_BCY_LEDGER_CITY", city_id)
+  end
+end
+
 function TXHBalanceBCY.RecalculateMapYield(x, y)
+  if TXHBalanceBCY.GetMode() == -1 or TXHBalanceBCY.GetYieldMode() ~= 1 then
+    return
+  end
   local city = CityManager.GetCityAt(x, y)
   if city == nil then
     return
   end
 
-  if TXHBalanceBCY.GetMode() == 1 and Players[city:GetOwner()]:GetCities():GetCapitalCity() ~= city then
+  local player = Players[city:GetOwner()]
+  if player == nil then
+    return
+  end
+  if TXHBalanceBCY.GetMode() == 1 and player:GetCities():GetCapitalCity() ~= city then
     return
   end
 
@@ -463,35 +527,66 @@ function TXHBalanceBCY.RecalculateMapYield(x, y)
     return
   end
 
-  local base_tile_yields = TXHBalanceBCY.CalculateBaseYield(plot)
-
-  for i = 0, 5 do
-    local firaxis_property = TXHBalanceBCY.FiraxisYieldPropertyName(i)
-    local extra_property = TXHBalanceBCY.ExtraYieldPropertyName(i)
-    local firaxis_full_tile_yield = plot:GetProperty(firaxis_property)
-    local extra_yield = plot:GetProperty(extra_property)
-
-    if extra_yield == nil then
-      extra_yield = 0
+  local key = tostring(city:GetOwner()) .. ":" .. tostring(city:GetID())
+  if state.recalculating[key] then
+    return
+  end
+  state.recalculating[key] = true
+  local ok, message = pcall(function()
+    bind_runtime_ledger(plot, city)
+    for i = 0, 5 do
+      local property = runtime_property(i)
+      local net = tonumber(plot:GetProperty(property)) or 0
+      -- GetYield is the current total, including applied BCY corrections.
+      -- Old founding bonuses remain part of the observed baseline; adding
+      -- them again would double count them. Never reuse a historical maximum.
+      local current = plot:GetYield(i)
+      local baseline = current - net
+      local desired_net = GameInfo[control_table][i].Amount - baseline
+      local delta = desired_net - net
+      if delta ~= 0 then
+        local direction = delta > 0 and "ADD" or "REMOVE"
+        local amount = delta > 0 and 1 or -1
+        local modifier = "TXH_BCY_RUNTIME_" .. direction .. "_" .. GameInfo.Yields[i].YieldType .. "_BBCC"
+        for _ = 1, math.abs(delta) do
+          city:AttachModifierByID(modifier)
+          net = net + amount
+          plot:SetProperty(property, net)
+        end
+      end
     end
+  end)
+  state.recalculating[key] = nil
+  if not ok then
+    error(message)
+  end
+end
 
-    if firaxis_full_tile_yield == nil then
-      firaxis_full_tile_yield = math.max(plot:GetYield(i), state.base_guaranteed_yields[i])
-    else
-      firaxis_full_tile_yield = math.max(plot:GetYield(i), firaxis_full_tile_yield)
+function TXHBalanceBCY.RefreshPlayerCities(player_id)
+  if type(player_id) ~= "number" or Players[player_id] == nil then
+    return
+  end
+  for _, city in Players[player_id]:GetCities():Members() do
+    if city:GetOwner() == player_id then
+      TXHBalanceBCY.RecalculateMapYield(city:GetX(), city:GetY())
     end
-    plot:SetProperty(firaxis_property, firaxis_full_tile_yield)
+  end
+end
 
-    local pre_watermill_yield = math.max(base_tile_yields[i], state.base_guaranteed_yields[i])
-    local extra_bcy_yield = math.max(GameInfo[control_table][i].Amount, pre_watermill_yield) - pre_watermill_yield
-    local target_yield = firaxis_full_tile_yield - extra_yield + extra_bcy_yield
-    local yield_diff = target_yield - GameInfo[control_table][i].Amount
+function TXHBalanceBCY.OnCityBuiltNoRng(player_id, city_id, x, y)
+  TXHBalanceBCY.RecalculateMapYield(x, y)
+end
 
-    if yield_diff > 0 then
-      plot:SetProperty(extra_property, yield_diff + extra_yield)
-      for step = 1, yield_diff do
-        local modifier_id = "MODIFIER_CITY_REMOVE_" .. tostring(extra_yield + step) .. "_" .. extra_property .. "_BBG"
-        city:AttachModifierByID(modifier_id)
+local function adopt_existing_founding_bonuses()
+  -- Loading an old game cannot reconstruct its original founding conditions or
+  -- modifier counts. Adopt existing cities without replaying their old bonuses.
+  for _, player in ipairs(PlayerManager.GetAlive()) do
+    local cities = player:GetCities()
+    if cities ~= nil then
+      for _, city in cities:Members() do
+        if city:GetProperty(FOUNDING_BONUS_PROPERTY) == nil then
+          city:SetProperty(FOUNDING_BONUS_PROPERTY, 1)
+        end
       end
     end
   end
@@ -506,7 +601,12 @@ function TXHBalanceBCY.Initialize()
   local yield_mode = TXHBalanceBCY.GetYieldMode()
 
   if mode ~= -1 then
-    if yield_mode == 1 or yield_mode == 2 then
+    if yield_mode == 0 or yield_mode == 2 then
+      adopt_existing_founding_bonuses()
+    end
+    if yield_mode == 1 then
+      GameEvents.CityBuilt.Add(TXHBalanceBCY.OnCityBuiltNoRng)
+    elseif yield_mode == 2 then
       GameEvents.CityBuilt.Add(TXHBalanceBCY.OnCityBuiltLegacy)
     elseif yield_mode == 0 then
       GameEvents.CityBuilt.Add(TXHBalanceBCY.OnCityBuiltStandard)
@@ -514,6 +614,9 @@ function TXHBalanceBCY.Initialize()
 
     if yield_mode == 1 then
       GameEvents.GameplayBCYAdjustCityYield.Add(TXHBalanceBCY.OnGameplayAdjustCityYield)
+      -- AI and remote players do not rely on operations sent by a local UI.
+      -- This also refreshes loaded games and newly reassigned capitals.
+      GameEvents.PlayerTurnStarted.Add(TXHBalanceBCY.RefreshPlayerCities)
     end
   end
 end

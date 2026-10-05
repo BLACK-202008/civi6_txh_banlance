@@ -221,10 +221,6 @@
     <File>BCY/Database/12_no_rng_rules.sql</File>
     <File>BCY/Database/13_runtime_support.sql</File>
     <File>BCY/Database/14_capital_only.sql</File>
-    <File>BCY/Scripts/bcy_lookup.lua</File>
-    <File>BCY/Scripts/bcy_city_built.lua</File>
-    <File>BCY/Scripts/bcy_recalculate.lua</File>
-    <File>BCY/Scripts/bcy_init.lua</File>
     <File>Compat/Text/pen_wonder_compat.xml</File>
     <File>NewUnits/Database/new_units_gameplay.xml</File>
     <File>NewUnits/Text/new_units_text.xml</File>

@@ -26,10 +26,6 @@ REQUIRED_FILES = [
     "BCY/Database/12_no_rng_rules.sql",
     "BCY/Database/13_runtime_support.sql",
     "BCY/Database/14_capital_only.sql",
-    "BCY/Scripts/bcy_lookup.lua",
-    "BCY/Scripts/bcy_city_built.lua",
-    "BCY/Scripts/bcy_recalculate.lua",
-    "BCY/Scripts/bcy_init.lua",
     "Scripts/txh_bcy_gameplay.lua",
     "Scripts/txh_bcy_bridge.lua",
     "Scripts/txh_bcy_bridge.xml",
@@ -120,7 +116,7 @@ SPOT_CHECKS = {
         "Balance/Database/06_leader_projects.sql",
         "PROJECT_LIJIA_GOLD",
     ],
-    "BCY entry script includes init module": [
+    "BCY standalone entry registers city events": [
         "Scripts/txh_bcy_gameplay.lua",
         "GameEvents.CityBuilt",
     ],

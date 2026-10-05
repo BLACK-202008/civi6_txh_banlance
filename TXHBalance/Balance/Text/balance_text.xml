@@ -205,10 +205,10 @@
     </Row>
 
     <Row Tag="LOC_BBG_FRONT_BBCC_SETTING_YIELD_0_DESC" Language="zh_Hans_CN">
-      <Text>标准 BCY 规则：当城市建在原本只有2食物1生产的平地市中心时，补足+1生产。文明特性照常生效；带金币、信仰、科技或文化资源的地块不会因此获得额外生产；若后续显露战略资源，则改用该资源产出。</Text>
+      <Text>标准 BCY 规则：符合条件的平地市中心补至3食物1生产，丘陵市中心补至2食物2生产。文明特性照常生效；带金币、信仰、科技或文化等额外产出的资源地块不会获得这种补平；未显露战略资源的临时补平会在资源显露后退出。</Text>
     </Row>
     <Row Tag="LOC_BBG_FRONT_BBCC_SETTING_YIELD_0_DESC" Language="en_US">
-      <Text>Standard BCY rules: flat city centers that would otherwise settle as 2 [ICON_FOOD] Food / 1 [ICON_PRODUCTION] Production gain +1 [ICON_PRODUCTION] Production. Civilization-specific abilities still apply, non-production resource yields do not gain this bonus, and revealed Strategic Resources replace the bonus with their own yields.</Text>
+      <Text>Standard BCY rules: eligible flat city centers are raised to 3 [ICON_FOOD] Food / 1 [ICON_PRODUCTION] Production, and eligible hill city centers to 2 [ICON_FOOD] Food / 2 [ICON_PRODUCTION] Production. Civilization abilities still apply. Resource tiles with additional Gold, Faith, Science or Culture do not receive this adjustment; temporary bonuses for hidden Strategic Resources expire when those resources become visible.</Text>
     </Row>
 
     <Row Tag="LOC_BBG_FRONT_BBCC_SETTING_YIELD_1_NAME" Language="zh_Hans_CN">
