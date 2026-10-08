@@ -1,0 +1,9 @@
+# Preserve existing Git blob line endings during the directory move.
+* text=auto
+mod/TXHBalance/BCY/Database/10_config_values.sql -text
+mod/TXHBalance/BCY/Database/11_core_rules.sql -text
+mod/TXHBalance/BCY/Database/12_no_rng_rules.sql -text
+mod/TXHBalance/BCY/Database/14_capital_only.sql -text
+mod/TXHBalance/Scripts/txh_bcy_gameplay.lua -text
+mod/TXHBalance/TXHBalance_Units.dep -text
+mod/TXHBalance/TXHBalance.modinfo -text

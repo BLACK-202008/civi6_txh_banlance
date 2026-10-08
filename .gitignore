@@ -1,0 +1,6 @@
+# Local development, validation and audit materials are not distributed.
+/dev/
+/review/
+/dist/
+__pycache__/
+*.py[cod]

@@ -1,4 +1,4 @@
-﻿# TXH Balance Integrated
+# TXH Balance Integrated
 
 这是一个《文明6》整合平衡模组，围绕中后期作战节奏、基础设施收益、文明特性和市中心产出规则做了一组成体系的调整，并整合了两个新单位。
 
@@ -311,5 +311,5 @@
 2. 在附加内容中启用本模组。
 3. 确保 `Rise and Fall` 和 `Gathering Storm` 已启用。
 
-`Mods` 中只保留运行资源及安装说明。`.git`、`tests` 和 `_tools` 留在开发仓库，不随运行版本安装。
+`Mods` 中只保留运行资源及安装说明。`.git`、`dev`、`review` 和 `dist` 留在开发仓库，不随运行版本安装。
 
