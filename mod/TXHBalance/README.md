@@ -1,314 +1,200 @@
 # TXH Balance Integrated
 
-这是一个《文明6》整合平衡模组，围绕中后期作战节奏、基础设施收益、文明特性和市中心产出规则做了一组成体系的调整，并整合了两个新单位。
+《文明6》平衡模组。调整了中后期的军事节奏、基础设施收益、几个文明的特性和市中心产出规则，另外加入两个新单位。
 
 ## 基本信息
 
-- 模组名称：`TXH Balance Integrated`
-- 模组入口：[TXHBalance.modinfo](</C:/Users/oh_black/Desktop/code/test-civi6/civi6_txh_banlance - gpt5.4/TXHBalance/TXHBalance.modinfo>)
-- 依赖扩展包：`Rise and Fall`、`Gathering Storm`
-- 作者：`TXH`、`oh_black`
+- 模组名称：TXH Balance Integrated
+- 入口文件：`TXHBalance.modinfo`
+- 需要的资料片：迭起兴衰、风云变幻
+- 作者：TXH、oh_black
+
+## 阅读说明
+
+- 数值一律写成“原版 → 本模组”。原版数值取自风云变幻规则下、没有加载任何模组的游戏数据库。
+- “成本”指生产力造价。
+- 括号里的文明表示特色单位或特色区域，它们和被替代的基础单位、基础区域改法相同。
+- 数据库里的键名见 `Balance/Database/` 下的 SQL 文件。
 
 ## 这个模组改了什么
 
-### 1. 单位平衡与前置科技调整
+### 1. 单位数值与解锁科技
 
-以下单位的数值或前置科技被调整：
+| 单位 | 改动 |
+| --- | --- |
+| 机关枪队 | 成本 540 → 430；战斗力 70 → 60；远程战斗力 85 → 70 |
+| 航空母舰 | 战斗力 65 → 75 |
+| 观测气球 | 成本 240 → 180；移动力 2 → 3；视野 3 → 4 |
+| 无人机 | 成本 420 → 300；移动力 3 → 4；视野 5 → 6 |
+| 虎蹲炮（中国） | 射程 1 → 2 |
+| 武士（日本） | 战斗力 48 → 50 |
+| 四段帆船、火战船（拜占庭） | 战斗力 20 → 25；远程战斗力 25 → 35 |
 
-- `UNIT_MACHINE_GUN`
-  - `Cost=430`
-  - `Combat=60`
-  - `RangedCombat=70`
-  - 前置科技改为 `TECH_REPLACEABLE_PARTS`
-- `UNIT_AIRCRAFT_CARRIER`
-  - `Cost=540`
-  - `Combat=75`
-- `UNIT_TREBUCHET`
-  - 前置科技改为 `TECH_SIEGE_TACTICS`
-  - `Cost=160`
-  - `BaseMoves=2`
-  - `Bombard=48`
-- `UNIT_OBSERVATION_BALLOON`
-  - `Cost=180`
-  - `BaseSightRange=4`
-  - `BaseMoves=3`
-- `UNIT_DRONE`
-  - `Cost=300`
-  - `BaseSightRange=6`
-  - `BaseMoves=4`
-- `UNIT_CHINESE_CROUCHING_TIGER`
-  - `Range=2`
-- `UNIT_CUIRASSIER`
-  - 前置科技改为 `TECH_MILITARY_SCIENCE`
-  - 波兰翼骑兵 `UNIT_POLISH_HUSSAR` 不跟随，保持原版 `CIVIC_MERCANTILISM` 市政解锁
-- `UNIT_AMERICAN_ROUGH_RIDER`
-  - 前置科技改为 `TECH_MILITARY_SCIENCE`
-- `UNIT_LINE_INFANTRY`
-  - 前置科技改为 `TECH_RIFLING`
-- `UNIT_FRENCH_GARDE_IMPERIALE`
-  - 前置科技改为 `TECH_RIFLING`
-- `UNIT_ENGLISH_REDCOAT`
-  - 前置科技改为 `TECH_RIFLING`
-- `UNIT_RANGER`
-  - 前置科技改为 `TECH_BALLISTICS`
-- `UNIT_SCOTTISH_HIGHLANDER`
-  - 前置科技改为 `TECH_BALLISTICS`
-- `UNIT_COURSER`
-  - 前置科技改为 `TECH_STIRRUPS`
-- `UNIT_ETHIOPIAN_OROMO_CAVALRY`
-  - 前置科技改为 `TECH_STIRRUPS`
-- `UNIT_HUNGARY_BLACK_ARMY`
-  - 前置科技改为 `TECH_STIRRUPS`
-- `UNIT_QUADRIREME`
-  - `Combat=25`
-  - `RangedCombat=35`
-- `UNIT_BYZANTINE_DROMON`
-  - `Combat=25`
-  - `RangedCombat=35`
-- `UNIT_JAPANESE_SAMURAI`
-  - `Combat=50`
+解锁科技的调整如下。波兰的翼骑兵是例外：它保持原版的重商主义市政解锁，不跟胸甲骑兵一起改。
 
-### 2. 攻城体系强化
+| 单位 | 原版解锁 | 本模组解锁 |
+| --- | --- | --- |
+| 破城槌 | 砌砖（远古） | 轮子（远古） |
+| 追猎者、奥罗莫骑兵（埃塞俄比亚）、黑军（匈牙利） | 城堡（中世纪） | 马镫（中世纪） |
+| 投石机、高棉战象（高棉） | 军事工程学（中世纪） | 攻城术（文艺复兴） |
+| 胸甲骑兵、莽骑兵（美国） | 弹道学（工业） | 军事学（工业） |
+| 线列步兵、帝国卫队（法国）、红衫军（英国） | 军事学（工业） | 膛线（工业，更晚） |
+| 游骑兵、高地军团（苏格兰） | 膛线（工业） | 弹道学（工业，更早） |
+| 机关枪队 | 高级弹道学（原子能） | 零件规格化（现代） |
 
-攻城线和辅助攻城单位被整体强化：
+机关枪队提前一个时代并削弱数值，原来高级弹道学这一档由新单位自行火炮接替（见第 10 节）。
 
-- `UNIT_SIEGE_TOWER`
-  - `BaseMoves=3`
-  - `Cost=80`
-- `UNIT_BATTERING_RAM`
-  - `BaseMoves=2`
-  - `Cost=50`
-  - 前置科技改为 `TECH_THE_WHEEL`
-- `UNIT_CATAPULT`
-  - `Cost=110`
-  - `BaseMoves=2`
-  - `Bombard=38`
-- `UNIT_KHMER_DOMREY`
-  - 前置科技改为 `TECH_SIEGE_TACTICS`
-  - `Cost=160`
-  - `BaseMoves=2`
-  - `Range=2`
-  - `Bombard=53`
-  - `Combat=40`
-- `UNIT_BOMBARD`
-  - `Cost=260`
-  - `BaseMoves=3`
-  - `Bombard=58`
-- `UNIT_ARTILLERY`
-  - `BaseMoves=3`
-  - `Cost=420`
-- `UNIT_ROCKET_ARTILLERY`
-  - `BaseMoves=4`
-  - `Cost=650`
+### 2. 攻城单位
 
-并且新增了攻城单位通用能力：
+| 单位 | 改动 |
+| --- | --- |
+| 破城槌 | 成本 65 → 50 |
+| 攻城塔 | 成本 100 → 80；移动力 2 → 3 |
+| 石弩 | 成本 120 → 110；轰炸战斗力 35 → 38 |
+| 投石机 | 成本 200 → 160；轰炸战斗力 45 → 48 |
+| 高棉战象（高棉） | 成本 200 → 160；轰炸战斗力 50 → 53 |
+| 射石炮 | 成本 280 → 260；轰炸战斗力 55 → 58；移动力 2 → 3 |
+| 大炮 | 成本 430 → 420；移动力 2 → 3 |
+| 火箭炮 | 成本 680 → 650；移动力 3 → 4 |
 
-- `ABILITY_SIEGE_RANGED_DEFENSE`
-  - 防守远程攻击时 `+10 Combat Strength`
+攻城单位新增一个能力：防守远程攻击时 +10 战斗力。游戏里这个能力借用了“龟形盾”晋升的名字。
 
-### 3. 新增攻城生产政策卡
+本模组说的“攻城单位”指攻城类单位：石弩、投石机、高棉战象、射石炮、大炮、火箭炮。破城槌和攻城塔属于支援单位，不享受这个能力，也不受第 3 节政策卡影响。
 
-新增三张军事政策卡，统一强化攻城单位产能：
+### 3. 攻城生产政策卡
 
-- `POLICY_SIEGE`
-  - 解锁：`CIVIC_MILITARY_TRADITION`
-  - 效果：远古、古典、中世纪攻城单位 `+50% Production`
-- `POLICY_HARD_SHELL_EXPLOSIVES`
-  - 解锁：`CIVIC_MEDIEVAL_FAIRES`
-  - 效果：文艺复兴及更早攻城单位 `+50% Production`
-- `POLICY_TRENCH_WARFARE`
-  - 解锁：`CIVIC_SCORCHED_EARTH`
-  - 效果：全部攻城单位 `+50% Production`
+新增三张军事政策卡：
 
-过时链：
+| 政策卡 | 解锁市政 | 效果 |
+| --- | --- | --- |
+| 攻城器械 | 军事传统（远古） | 生产远古、古典、中世纪的攻城单位时 +50% 生产力 |
+| 高爆炸药 | 中世纪集市（中世纪） | 生产文艺复兴及更早的攻城单位时 +50% 生产力 |
+| 堑壕战 | 焦土策略（工业） | 生产所有攻城单位时 +50% 生产力 |
 
-- `POLICY_SIEGE -> POLICY_HARD_SHELL_EXPLOSIVES -> POLICY_TRENCH_WARFARE`
+解锁下一张后，上一张作废：攻城器械 → 高爆炸药 → 堑壕战。
 
-### 4. 建筑、区域与基础设施调整
+### 4. 建筑、区域与基础设施
 
-工业区、发电厂和城市基础设施整体加强：
+| 建筑 | 改动 |
+| --- | --- |
+| 工作坊 | 成本 195 → 175；生产力 +3 → +4 |
+| 工厂 | 成本 330 → 300；生产力 +3 → +5 |
+| 电子厂（日本） | 成本 330 → 150；生产力 +3 → +6 |
+| 燃油发电厂 | 成本 360 → 350；生产力 +3 → +5 |
+| 核电站 | 成本 480 → 400；生产力 +4 → +6 |
+| 食品市场 | 食物 +4 → +6 |
+| 购物商场 | 金币 +2 → +4 |
+| 粮仓 | 成本 65 → 46；食物 +1 → +2；城市不靠淡水时额外 +1 住房，只加给建了这座粮仓的城市 |
 
-- `BUILDING_WORKSHOP`
-  - `Cost=175`
-  - 产能改为 `+4`
-- `BUILDING_FACTORY`
-  - `Cost=300`
-  - 产能改为 `+5`
-- `BUILDING_ELECTRONICS_FACTORY`
-  - `Cost=150`
-  - 产能改为 `+6`
-- `BUILDING_POWER_PLANT`
-  - `Cost=400`
-  - 产能改为 `+6`
-  - 科技改为 `+3`
-- `BUILDING_FOSSIL_FUEL_POWER_PLANT`
-  - `Cost=350`
-  - 产能改为 `+5`
-- `BUILDING_COAL_POWER_PLANT`
-  - `Cost=300`
-- `BUILDING_FOOD_MARKET`
-  - 食物改为 `+6`
-- `BUILDING_SHOPPING_MALL`
-  - 金币改为 `+4`
-- `BUILDING_GRANARY`
-  - `Cost=46`
-  - 食物改为 `+2`
-  - 住房改为 `+2`
-  - 无淡水城市额外 `+1 住房`
-- `DISTRICT_AQUEDUCT`
-  - `Cost=24`
-- `DISTRICT_BATH`
-  - `Cost=12`
-- `DISTRICT_CANAL`
-  - `Cost=54`
-- `DISTRICT_DAM`
-  - `Cost=40`
+工厂、电子厂、食品市场、购物商场通电后的额外产出没有改。
 
-### 5. 水磨 / Palgum 重做
+| 区域 | 基础成本 |
+| --- | --- |
+| 水渠 | 36 → 24 |
+| 浴场（罗马） | 18 → 12 |
+| 运河 | 81 → 54 |
+| 堤坝 | 81 → 40 |
 
-- `BUILDING_WATER_MILL`
-  - 基础食物改为 `+2`
-  - 删除原有基于稻米 / 小麦 / 玉米的旧 modifier
-  - 改为：
-    - 农场 `+1 Production`
-    - 种植园 `+1 Production`
-- `BUILDING_PALGUM`
-  - 基础产能改为 `+3`
-  - 同步获得：
-    - 农场 `+1 Production`
-    - 种植园 `+1 Production`
+### 5. 水磨与沟渠重做
 
-### 6. 杂项平衡调整
+| 建筑 | 改动 |
+| --- | --- |
+| 水磨 | 食物 +1 → +2，生产力 +1 不变；去掉原版的大米、小麦、玉米 +1 食物，改为本城的农场、种植园各 +1 生产力 |
+| 沟渠（Palgum，巴比伦） | 生产力 +2 → +3；新增本城的农场、种植园各 +1 生产力 |
 
-- `BUILDING_HANGING_GARDENS`
-  - `Housing=1`
-  - 6 格内城市额外 `+1 Housing`
-- `BUILDING_GREAT_LIBRARY`
-  - 前置市政改为 `CIVIC_DRAMA_POETRY`
-- `IMPROVEMENT_FISHING_BOATS`
-  - `YieldChange=+1 Production`
+### 6. 其他
 
-### 7. 专家产出调整
+| 对象 | 改动 |
+| --- | --- |
+| 空中花园 | 本城住房 +2 → +1；6 格内的城市（本城也算）各 +1 住房 |
+| 大图书馆 | 解锁市政从历史记录改为戏剧和诗歌，同在古典时期，戏剧和诗歌更早 |
+| 渔船 | 生产力 +0 → +1 |
 
-- `DISTRICT_COMMERCIAL_HUB` / `DISTRICT_SUGUBA`
-  - 专家金币改为 `+6`
-- `DISTRICT_INDUSTRIAL_ZONE` / `DISTRICT_HANSA` / `DISTRICT_OPPIDUM`
-  - 专家产能改为 `+3`
-- `DISTRICT_HARBOR` / `DISTRICT_ROYAL_NAVY_DOCKYARD` / `DISTRICT_COTHON`
-  - 专家金币改为 `+5`
-- `DISTRICT_ENCAMPMENT` / `DISTRICT_THANH` / `DISTRICT_IKANDA`
-  - 专家产能改为 `+2`
+### 7. 专家产出
 
-### 8. 文明与领袖特性调整
+| 区域 | 每位专家 |
+| --- | --- |
+| 商业中心、曼丁哥市场（马里） | 金币 +4 → +6 |
+| 工业区、商业同业工会（德国）、奥皮杜姆（高卢） | 生产力 +2 → +3 |
+| 港口、皇家海军船坞（英国）、U型港（腓尼基） | 金币 +2 → +5，食物 +1 不变 |
+| 军营、城池（越南）、伊坎达（祖鲁） | 生产力 +1 → +2，金币 +2 不变 |
 
-- 巴比伦 `TRAIT_CIVILIZATION_BABYLON`
-  - 尤里卡收益调整为 `88%`
-  - 每回合科技惩罚调整为 `-33%`
-- 永乐里甲项目：
-  - `PROJECT_LIJIA_FAITH` -> `80% Production -> Faith`
-  - `PROJECT_LIJIA_FOOD` -> `80% Production -> Food`
-  - `PROJECT_LIJIA_GOLD` -> `200% Production -> Gold`
+### 8. 文明与领袖特性
+
+- 巴比伦（文明特性“巴比伦诸神”）：尤里卡提供的科技值 100% → 88%；每回合科技 -50% → -33%。
+- 永乐（领袖特性“里甲”）：三个里甲项目把生产力转换成其他产出，比例改为信仰 50% → 80%、食物 50% → 80%、金币 100% → 200%。
 
 ### 9. BCY 市中心产出规则
 
-这个模组集成了 BCY 选项，并提供两个维度的前端配置：
+开局设置里有两个选项：
 
-- `BBCC_SETTING`
-  - `-1`：关闭
-  - `0`：所有城市
-  - `1`：仅首都
-- `BBCC_SETTING_YIELD`
-  - `0`：平衡模式
-  - `1`：无随机模式
-  - `2`：最大模式
+| 选项 | 可选值 |
+| --- | --- |
+| BCY：受影响的市中心 | 关闭、所有城市（默认）、仅首都 |
+| BCY：市中心产出算法 | 平衡（默认）、无随机、最大 |
 
-具体行为：
+三种算法：
 
-- 平衡模式
-  - 以标准 BCY 规则补平部分平地市中心产出
-- 无随机模式
-  - 平地市中心固定 `3 Food / 1 Production`
-  - 丘陵市中心固定 `2 Food / 2 Production`
-  - 地块产出变化时动态重算
-- 最大模式
-  - 平地至少 `3 Food / 1 Production`
-  - 丘陵至少 `2 Food / 2 Production`
-  - 在保障值与实际结算值之间取高值
+- 平衡：符合条件的平地市中心补到 3 食物 1 生产力，丘陵市中心补到 2 食物 2 生产力。文明特性照常生效。带金币、信仰、科技或文化等额外产出的资源地块不补。为尚未显露的战略资源临时补的产出，在资源显露后撤掉。
+- 无随机：平地市中心固定为 3 食物 1 生产力，丘陵市中心固定为 2 食物 2 生产力，产出变化时重新计算。
+- 最大：平地市中心至少 3 食物 1 生产力，丘陵至少 2 食物 2 生产力；保障值和地块实际产出取较高的一个。
 
+#### 运行机制与旧存档
 
-### BCY 运行时与旧存档
-
-无随机模式直接根据当前市中心产出与已施加修正的净值重新计算；产出增加和下降均能修正，重复已结算事件不会继续叠加。Gameplay 在建城及玩家回合开始时刷新城市，UI 的即时请求只由该城市所属的本机玩家发送。仅首都模式的数据库需求会在首都迁移后停用旧首都修正，新首都在回合刷新时补平。
-
-平衡和最大化模式的建城奖励以城市持久化属性记录，重复建城事件不会再次附加奖励。旧档启动时登记已有城市的现有效果，不重新计算或重放其建城奖励；新建城市仍按原规则获得一次奖励。
-
-旧存档保留原有编号负修正的数据库定义。首次刷新时迁移旧 `EXTRA_YIELD_*` 账本，丢弃不能代表当前产出的 `FIRAXIS_YIELD_*` 历史峰值；超过 20 的旧编号并没有对应定义，不再据此创建缺失 modifier。账本同时记录城市 ID 和所有者，易手或在同格重建后重新绑定。旧档纠正发生在首次产出事件或所属玩家回合开始时。
-
-当前自动测试覆盖 SQLite 实际执行以及带持久化属性的 Lua 状态变化。存档序列化、异步地块结算、重复 modifier 的实机叠加和联机同步仍须在游戏内验证。正负补偿不使用未证实存在的 Detach API；长期反复变化会保留已附加的补偿实例。
-
-主 Gameplay 逻辑仅保留 `Scripts/txh_bcy_gameplay.lua`。原 `BCY/Scripts/` 四份未加载的旧副本已移除，清单及检查器同步更新，避免维护两套不同算法。
+- 无随机模式每次都按市中心当前的产出重算，产出变多或变少都会修正，同一事件重复触发不会多加。建城时和每个玩家回合开始时会刷新；本机玩家自己城市的产出变化后，会立即请求刷新。
+- 仅首都模式下迁都后，旧首都的修正自动失效，新首都在下个回合开始时补齐。
+- 平衡和最大模式的建城奖励每座城只给一次。读取旧存档时，已有的城市按现状登记，不补发也不重发。
+- 旧存档里的无随机修正会在第一次刷新时迁到新的记录方式；城市易手或在原地重建后会重新计算。
+- 还没有在游戏里验证的部分：存档读写、地块产出的异步结算、同一修正重复附加能否正常叠加、联机同步。修正只加不删（游戏没有可靠的移除接口），产出长期反复变化时会积累一些互相抵消的修正。
+- 游戏逻辑只有 `Scripts/txh_bcy_gameplay.lua` 一个入口，`BCY/Scripts/` 下四份没有被加载的旧副本已删除。
 
 ### 10. 新增单位
 
-#### `UNIT_AIRCRAFT_CARRIER_PRO`
+| 属性 | 核动力航母 | 自行火炮 |
+| --- | --- | --- |
+| 解锁科技 | 远程通信（信息时代） | 高级弹道学（原子能时代） |
+| 升级自 | 航空母舰 | 机关枪队 |
+| 成本 | 600 | 540 |
+| 维护费 | 7 | 6 |
+| 移动力 | 4 | 3 |
+| 战斗力 | 90 | 70 |
+| 远程战斗力 | 无 | 88 |
+| 射程 | 无 | 3 |
+| 防空战斗力 | 110 | 无 |
+| 舰载机位 | 3 | 无 |
 
-- 名称：核动力航母
-- 前置科技：`TECH_TELECOMMUNICATIONS`
-- `Cost=600`
-- `Maintenance=7`
-- `BaseMoves=4`
-- `Combat=90`
-- `AntiAirCombat=110`
-- `AirSlots=3`
-- 升级链：`UNIT_AIRCRAFT_CARRIER -> UNIT_AIRCRAFT_CARRIER_PRO`
+自行火炮的头像借用原版火箭炮的头像。
 
-#### `UNIT_MACHINE_GUN_PRO`
+### 11. 兼容其他模组
 
-- 名称：自行火炮
-- 前置科技：`TECH_ADVANCED_BALLISTICS`
-- `Cost=540`
-- `Maintenance=6`
-- `BaseMoves=3`
-- `Combat=70`
-- `RangedCombat=88`
-- `Range=3`
-- 升级链：`UNIT_MACHINE_GUN -> UNIT_MACHINE_GUN_PRO`
-- 图标头像已改为复用原版火箭炮 portrait
+启用 `pen_wonder_enhanced` 模组时，空中花园的描述会换成兼容版文本，和那个模组的效果保持一致。
 
-### 11. 兼容内容
+### 附：和原版相同的设定
 
-- 当检测到 `pen_wonder_enhanced` 模组启用时：
-  - 覆盖 `LOC_BUILDING_HANGING_GARDENS_DESCRIPTION`
-  - 使悬园描述与兼容版本效果保持一致
+以下数值在 SQL 里设置了，但原版本来就是这个值，实际没有变化：
+
+- 航空母舰成本 540
+- 投石机、石弩、破城槌移动力 2
+- 高棉战象射程 2、战斗力 40、移动力 2
+- 燃煤发电厂成本 300
+- 核电站科技 +3
+- 粮仓住房 +2
 
 ## 目录说明
 
-- `Balance/Database/`
-  - 主要平衡 SQL，按主题拆分
-- `Balance/Text/`
-  - 共用文本与说明文字
-- `BCY/Config/`
-  - BCY 前端参数定义
-- `BCY/Database/`
-  - BCY 数据库对象和规则
-- `NewUnits/Database/`
-  - 新单位定义
-- `NewUnits/UI/`
-  - 新单位图标映射
-- `NewUnits/Text/`
-  - 新单位名称与描述
-- `Compat/Text/`
-  - 条件兼容文本
-- `Scripts/txh_bcy_gameplay.lua`
-  - BCY gameplay 主入口
-- `Scripts/txh_bcy_bridge.lua`
-  - No RNG UI 桥接
+- `Balance/Database/`：平衡改动的 SQL，按主题分文件
+- `Balance/Text/`：共用文本和说明文字
+- `BCY/Config/`：BCY 开局选项
+- `BCY/Database/`：BCY 的数据库规则
+- `NewUnits/Database/`、`NewUnits/Text/`、`NewUnits/UI/`：新单位的定义、名称描述和图标
+- `Compat/Text/`：兼容其他模组时使用的文本
+- `Scripts/txh_bcy_gameplay.lua`：BCY 游戏逻辑入口
+- `Scripts/txh_bcy_bridge.lua`：无随机模式的界面桥接
 
 ## 安装方式
 
-1. 在 Civilization VI 的 `Mods` 目录创建 `TXHBalance` 文件夹，按 `TXHBalance.modinfo` 的 `<Files>` 清单复制运行资源，并复制 `.modinfo`；也可使用仅包含运行资源的安装包。
-2. 在附加内容中启用本模组。
-3. 确保 `Rise and Fall` 和 `Gathering Storm` 已启用。
+1. 把 `TXHBalance` 文件夹整个放进《文明6》的 `Mods` 目录，也可以用开发仓库 `dist/` 里的安装包。
+2. 在“附加内容”里启用本模组。
+3. 确认迭起兴衰和风云变幻已经启用。
 
-`Mods` 中只保留运行资源及安装说明。`.git`、`dev`、`review` 和 `dist` 留在开发仓库，不随运行版本安装。
-
+`Mods` 里只放运行文件和这份说明。`.git`、`dev`、`review`、`dist` 留在开发仓库，不随模组安装。
