@@ -6,7 +6,7 @@
 
 - 模组名称：TXH Balance Integrated
 - 入口文件：`TXHBalance.modinfo`
-- 需要的资料片：迭起兴衰、风云变幻
+- 需要的资料片：迭起兴衰、风云变幻；只适配风云变幻规则
 - 作者：TXH、oh_black
 
 ## 阅读说明
