@@ -1,4 +1,4 @@
-﻿-- BCY gameplay 逻辑使用单文件实现，避免运行时 include 路径问题。
+-- BCY gameplay 逻辑使用单文件实现，避免运行时 include 路径问题。
 
 TXHBalanceBCY = TXHBalanceBCY or {}
 
@@ -253,17 +253,7 @@ local function should_skip_city(player_id)
   return TXHBalanceBCY.GetMode() == 1 and Players[player_id]:GetCities():GetCount() > 1
 end
 
-local function build_city_context(player_id, city_id, x, y, yield_list)
-  local city = CityManager.GetCity(player_id, city_id)
-  if city == nil or should_skip_city(player_id) then
-    return nil
-  end
-
-  local plot = Map.GetPlot(x, y)
-  if plot == nil then
-    return nil
-  end
-
+local function plot_context(plot, yield_list)
   local base_yields, resource_id = TXHBalanceBCY.CalculateBaseYield(plot, yield_list, true)
   local control_table = TXHBalanceBCY.GetControlTableName(plot:GetTerrainType())
   if control_table == nil then
@@ -277,12 +267,29 @@ local function build_city_context(player_id, city_id, x, y, yield_list)
   end
 
   return {
-    city = city,
     base_yields = base_yields,
     resource_id = resource_id,
     control_table = control_table,
     is_strategic_resource = is_strategic_resource,
   }
+end
+
+local function build_city_context(player_id, city_id, x, y, yield_list)
+  local city = CityManager.GetCity(player_id, city_id)
+  if city == nil or should_skip_city(player_id) then
+    return nil
+  end
+
+  local plot = Map.GetPlot(x, y)
+  if plot == nil then
+    return nil
+  end
+
+  local context = plot_context(plot, yield_list)
+  if context ~= nil then
+    context.city = city
+  end
+  return context
 end
 
 local function attach_modifier_count(city, modifier_id, count)
@@ -317,52 +324,54 @@ local function begin_founding_bonus(city)
   return true
 end
 
+-- Founding package of the Maximum rule, for food and production: the
+-- permanent bonus count, and the temporary count that applies only while the
+-- owner cannot see the tile's strategic resource (*_NS_<resource>_BBCC).
+-- Earlier versions founded No RNG cities with the same package.
+local function legacy_founding_package(context)
+  local resource_type = nil
+  if context.resource_id ~= nil and context.resource_id ~= -1 and context.is_strategic_resource then
+    resource_type = GameInfo.Resources[context.resource_id].ResourceType
+  end
+
+  local package = {}
+  for i = 0, 1 do
+    local guaranteed_yield = GameInfo[context.control_table][i].Amount
+    local firaxis_initial_yield = math.max(state.base_guaranteed_yields[i], context.base_yields[i])
+    local base_bonus_count = 0
+    local strategic_bonus_count = 0
+
+    if context.resource_id ~= nil and context.resource_id ~= -1 then
+      local final_tile_yield = context.base_yields[i] + TXHBalanceBCY.GetYield("RESOURCE", context.resource_id, i)
+      local firaxis_final_yield = math.max(state.base_guaranteed_yields[i], final_tile_yield)
+
+      if guaranteed_yield > firaxis_final_yield then
+        base_bonus_count = guaranteed_yield - firaxis_final_yield
+        if context.is_strategic_resource then
+          strategic_bonus_count = firaxis_final_yield - firaxis_initial_yield
+        end
+      elseif context.is_strategic_resource and firaxis_initial_yield < guaranteed_yield then
+        strategic_bonus_count = guaranteed_yield - firaxis_initial_yield
+      end
+    elseif guaranteed_yield > firaxis_initial_yield then
+      base_bonus_count = guaranteed_yield - firaxis_initial_yield
+    end
+
+    package[i] = {base = base_bonus_count, strategic = strategic_bonus_count}
+  end
+
+  return package, resource_type
+end
+
 function TXHBalanceBCY.OnCityBuiltLegacy(player_id, city_id, x, y)
   local context = build_city_context(player_id, city_id, x, y, {0, 1})
   if context == nil or not begin_founding_bonus(context.city) then
     return
   end
 
-  local resource_type = nil
-  if context.resource_id ~= nil and context.resource_id ~= -1 and context.is_strategic_resource then
-    resource_type = GameInfo.Resources[context.resource_id].ResourceType
-  end
-
-  if context.resource_id ~= nil and context.resource_id ~= -1 then
-    for i = 0, 1 do
-      local final_tile_yield = context.base_yields[i] + TXHBalanceBCY.GetYield("RESOURCE", context.resource_id, i)
-      local guaranteed_yield = GameInfo[context.control_table][i].Amount
-      local firaxis_final_yield = math.max(state.base_guaranteed_yields[i], final_tile_yield)
-      local base_bonus_count = 0
-      local strategic_bonus_count = 0
-
-      if guaranteed_yield > firaxis_final_yield then
-        base_bonus_count = guaranteed_yield - firaxis_final_yield
-        if context.is_strategic_resource then
-          local firaxis_initial_yield = math.max(state.base_guaranteed_yields[i], context.base_yields[i])
-          strategic_bonus_count = firaxis_final_yield - firaxis_initial_yield
-        end
-      elseif context.is_strategic_resource then
-        local firaxis_initial_yield = math.max(state.base_guaranteed_yields[i], context.base_yields[i])
-        if firaxis_initial_yield < guaranteed_yield then
-          strategic_bonus_count = guaranteed_yield - firaxis_initial_yield
-        end
-      end
-
-      apply_city_built_bonus(context.city, i, base_bonus_count, strategic_bonus_count, resource_type)
-    end
-  else
-    for i = 0, 1 do
-      local firaxis_initial_yield = math.max(state.base_guaranteed_yields[i], context.base_yields[i])
-      local guaranteed_yield = GameInfo[context.control_table][i].Amount
-      local base_bonus_count = 0
-
-      if guaranteed_yield > firaxis_initial_yield then
-        base_bonus_count = guaranteed_yield - firaxis_initial_yield
-      end
-
-      apply_city_built_bonus(context.city, i, base_bonus_count, 0, nil)
-    end
+  local package, resource_type = legacy_founding_package(context)
+  for i = 0, 1 do
+    apply_city_built_bonus(context.city, i, package[i].base, package[i].strategic, resource_type)
   end
 end
 
@@ -471,32 +480,110 @@ function TXHBalanceBCY.OnGameplayAdjustCityYield(player_id, parameters)
   TXHBalanceBCY.RecalculateMapYield(parameters.iX, parameters.iY)
 end
 
+-- No RNG keeps a ledger on the city center plot: how many +1/-1 corrections
+-- of each yield BCY has attached to the city that owns it.
+--
+-- In a gameplay script plot:GetYield() is the tile's own yield (terrain,
+-- feature, resources the owner can see, adjacent natural wonders, yields left
+-- by disasters). Modifiers attached to the city never show up in it; only the
+-- UI context sees them (in game: a snow city center reads 0/0 here and 3/1 in
+-- the UI). The city center gets that yield raised to the base guarantee
+-- (2 food, 1 production), plus the attached corrections. So each
+-- recalculation attaches target - guaranteed tile yield - ledger. What it
+-- attaches never changes its own input, so repeating it adds nothing.
+local LEDGER_VERSION = 2
+local LEDGER_VERSION_PROPERTY = "TXH_BCY_LEDGER_VERSION"
+local LEDGER_OWNER_PROPERTY = "TXH_BCY_LEDGER_OWNER"
+local LEDGER_CITY_PROPERTY = "TXH_BCY_LEDGER_CITY"
+local LEGACY_HIDDEN_RESOURCE_PROPERTY = "TXH_BCY_LEGACY_HIDDEN_RESOURCE"
+local GAME_LEDGER_PROPERTY = "TXH_BCY_NO_RNG_LEDGER_VERSION"
+-- 13_runtime_support.sql defines only MODIFIER_CITY_REMOVE_1..20_EXTRA_*.
+local LEGACY_REMOVAL_LIMIT = 20
+
+-- GetProperty returns no value at all for a key that was never set. Passed
+-- straight into tonumber() that raises "value expected", so assign it first.
+local function read_number(object, key)
+  local value = object:GetProperty(key)
+  return tonumber(value)
+end
+
 local function runtime_property(yield_id)
   return "TXH_BCY_NET_" .. GameInfo.Yields[yield_id].YieldType
 end
 
-local function bind_runtime_ledger(plot, city)
-  local owner, city_id = city:GetOwner(), city:GetID()
-  local previous_owner = plot:GetProperty("TXH_BCY_LEDGER_OWNER")
-  local previous_city = plot:GetProperty("TXH_BCY_LEDGER_CITY")
-  local first_bind = plot:GetProperty("TXH_BCY_LEDGER_VERSION") == nil
-  local changed_city = previous_owner ~= owner or previous_city ~= city_id
-  if first_bind or changed_city then
-    for i = 0, 5 do
-      -- The old SQL defines only removal IDs 1..20. Larger old EXTRA values
-      -- claimed nonexistent modifiers; FIRAXIS values are historical peaks.
-      -- A captured/refounded city must not reuse the former city's ledger.
-      local removed = 0
-      if first_bind and previous_owner == nil and previous_city == nil then
-        removed = tonumber(plot:GetProperty(TXHBalanceBCY.ExtraYieldPropertyName(i))) or 0
-        removed = math.max(0, math.min(20, math.floor(removed)))
-      end
-      plot:SetProperty(runtime_property(i), -removed)
-      plot:SetProperty(TXHBalanceBCY.FiraxisYieldPropertyName(i), nil)
+local function legacy_hidden_property(yield_id)
+  return "TXH_BCY_LEGACY_HIDDEN_" .. GameInfo.Yields[yield_id].YieldType
+end
+
+local function owner_sees_resource(player, resource_info)
+  if resource_info.PrereqTech ~= nil then
+    local tech = GameInfo.Technologies[resource_info.PrereqTech]
+    if tech ~= nil and not player:GetTechs():HasTech(tech.Index) then
+      return false
     end
-    plot:SetProperty("TXH_BCY_LEDGER_VERSION", 1)
-    plot:SetProperty("TXH_BCY_LEDGER_OWNER", owner)
-    plot:SetProperty("TXH_BCY_LEDGER_CITY", city_id)
+  end
+  if resource_info.PrereqCivic ~= nil then
+    local civic = GameInfo.Civics[resource_info.PrereqCivic]
+    if civic ~= nil and not player:GetCulture():HasCivic(civic.Index) then
+      return false
+    end
+  end
+  return true
+end
+
+-- Cities founded by an earlier version can carry founding bonuses that apply
+-- only while the owner cannot see the tile's strategic resource. The game
+-- switches them off when the resource is revealed.
+local function legacy_hidden_correction(plot, player, yield_id)
+  local count = read_number(plot, legacy_hidden_property(yield_id)) or 0
+  if count == 0 then
+    return 0
+  end
+  local resource_type = plot:GetProperty(LEGACY_HIDDEN_RESOURCE_PROPERTY)
+  local resource_info = nil
+  if resource_type ~= nil then
+    resource_info = GameInfo.Resources[resource_type]
+  end
+  if resource_info == nil or owner_sees_resource(player, resource_info) then
+    return 0
+  end
+  return count
+end
+
+-- Compare by ID: two lookups of the same city need not return one object.
+local function is_capital(player, city)
+  local capital = player:GetCities():GetCapitalCity()
+  return capital ~= nil and capital:GetID() == city:GetID()
+end
+
+local function ledger_binding(plot, city)
+  local version = read_number(plot, LEDGER_VERSION_PROPERTY)
+  local bound = version ~= nil
+    and read_number(plot, LEDGER_OWNER_PROPERTY) == city:GetOwner()
+    and read_number(plot, LEDGER_CITY_PROPERTY) == city:GetID()
+  return bound, version
+end
+
+local function start_ledger(plot, city)
+  for i = 0, 5 do
+    plot:SetProperty(runtime_property(i), 0)
+    plot:SetProperty(legacy_hidden_property(i), 0)
+  end
+  plot:SetProperty(LEGACY_HIDDEN_RESOURCE_PROPERTY, nil)
+  plot:SetProperty(LEDGER_VERSION_PROPERTY, LEDGER_VERSION)
+  plot:SetProperty(LEDGER_OWNER_PROPERTY, city:GetOwner())
+  plot:SetProperty(LEDGER_CITY_PROPERTY, city:GetID())
+end
+
+local function bind_runtime_ledger(plot, city)
+  local bound, version = ledger_binding(plot, city)
+  if not bound then
+    -- No ledger yet, or one left by a former city on this plot (captured, or
+    -- razed and founded again): none of those corrections belong to this city.
+    start_ledger(plot, city)
+  elseif version < LEDGER_VERSION then
+    -- Version 1 counted exactly the runtime corrections it attached.
+    plot:SetProperty(LEDGER_VERSION_PROPERTY, LEDGER_VERSION)
   end
 end
 
@@ -513,7 +600,7 @@ function TXHBalanceBCY.RecalculateMapYield(x, y)
   if player == nil then
     return
   end
-  if TXHBalanceBCY.GetMode() == 1 and player:GetCities():GetCapitalCity() ~= city then
+  if TXHBalanceBCY.GetMode() == 1 and not is_capital(player, city) then
     return
   end
 
@@ -536,14 +623,11 @@ function TXHBalanceBCY.RecalculateMapYield(x, y)
     bind_runtime_ledger(plot, city)
     for i = 0, 5 do
       local property = runtime_property(i)
-      local net = tonumber(plot:GetProperty(property)) or 0
-      -- GetYield is the current total, including applied BCY corrections.
-      -- Old founding bonuses remain part of the observed baseline; adding
-      -- them again would double count them. Never reuse a historical maximum.
-      local current = plot:GetYield(i)
-      local baseline = current - net
-      local desired_net = GameInfo[control_table][i].Amount - baseline
-      local delta = desired_net - net
+      local net = read_number(plot, property) or 0
+      local tile_yield = plot:GetYield(i)
+      local center_yield = math.max(state.base_guaranteed_yields[i], tonumber(tile_yield) or 0)
+      local applied = net + legacy_hidden_correction(plot, player, i)
+      local delta = GameInfo[control_table][i].Amount - center_yield - applied
       if delta ~= 0 then
         local direction = delta > 0 and "ADD" or "REMOVE"
         local amount = delta > 0 and 1 or -1
@@ -592,6 +676,92 @@ local function adopt_existing_founding_bonuses()
   end
 end
 
+local function has_legacy_no_rng_traces(plot)
+  for i = 0, 5 do
+    local removed = plot:GetProperty(TXHBalanceBCY.ExtraYieldPropertyName(i))
+    local peak = plot:GetProperty(TXHBalanceBCY.FiraxisYieldPropertyName(i))
+    if removed ~= nil or peak ~= nil then
+      return true
+    end
+  end
+  return false
+end
+
+-- Count the corrections an earlier version left on an existing city, so the
+-- first recalculation attaches only the remaining difference.
+local function adopt_legacy_no_rng_city(player, city, plot, founded_with_package)
+  local bound, version = ledger_binding(plot, city)
+  if bound then
+    if version < LEDGER_VERSION then
+      plot:SetProperty(LEDGER_VERSION_PROPERTY, LEDGER_VERSION)
+    end
+    return
+  end
+
+  start_ledger(plot, city)
+  for i = 0, 5 do
+    -- Numbered removals; IDs above 20 never existed, so they changed nothing.
+    local removed = read_number(plot, TXHBalanceBCY.ExtraYieldPropertyName(i)) or 0
+    removed = math.max(0, math.min(LEGACY_REMOVAL_LIMIT, math.floor(removed)))
+    plot:SetProperty(runtime_property(i), -removed)
+    plot:SetProperty(TXHBalanceBCY.ExtraYieldPropertyName(i), nil)
+    plot:SetProperty(TXHBalanceBCY.FiraxisYieldPropertyName(i), nil)
+  end
+
+  -- The founding package was never recorded. It went to every city its owner
+  -- founded; under Capital Only, only to a player's first city.
+  if not founded_with_package or city:GetOriginalOwner() ~= city:GetOwner() then
+    return
+  end
+  if TXHBalanceBCY.GetMode() == 1 and not is_capital(player, city) then
+    return
+  end
+  local context = plot_context(plot, {0, 1})
+  if context == nil then
+    return
+  end
+  local package, resource_type = legacy_founding_package(context)
+  for i = 0, 1 do
+    local property = runtime_property(i)
+    plot:SetProperty(property, (read_number(plot, property) or 0) + package[i].base)
+    if package[i].strategic > 0 and resource_type ~= nil then
+      plot:SetProperty(legacy_hidden_property(i), package[i].strategic)
+      plot:SetProperty(LEGACY_HIDDEN_RESOURCE_PROPERTY, resource_type)
+    end
+  end
+end
+
+local function adopt_legacy_no_rng_cities()
+  -- Runs once per game: a game started or already migrated by this version
+  -- carries the marker, and its cities without a ledger have no corrections.
+  local migrated = Game:GetProperty(GAME_LEDGER_PROPERTY)
+  if migrated ~= nil then
+    return
+  end
+
+  local entries = {}
+  -- Only the earlier BBG-style version left these properties, and it also
+  -- attached the founding package. Version 1 never got far enough to do either.
+  local founded_with_package = false
+  for _, player in ipairs(PlayerManager.GetAlive()) do
+    local cities = player:GetCities()
+    if cities ~= nil then
+      for _, city in cities:Members() do
+        local plot = Map.GetPlot(city:GetX(), city:GetY())
+        if plot ~= nil and TXHBalanceBCY.GetControlTableName(plot:GetTerrainType()) ~= nil then
+          entries[#entries + 1] = {player = player, city = city, plot = plot}
+          founded_with_package = founded_with_package or has_legacy_no_rng_traces(plot)
+        end
+      end
+    end
+  end
+
+  for _, entry in ipairs(entries) do
+    adopt_legacy_no_rng_city(entry.player, entry.city, entry.plot, founded_with_package)
+  end
+  Game:SetProperty(GAME_LEDGER_PROPERTY, LEDGER_VERSION)
+end
+
 function TXHBalanceBCY.Initialize()
   TXHBalanceBCY.PopulateTerrainYields()
   TXHBalanceBCY.PopulateResourceYields()
@@ -617,6 +787,8 @@ function TXHBalanceBCY.Initialize()
       -- AI and remote players do not rely on operations sent by a local UI.
       -- This also refreshes loaded games and newly reassigned capitals.
       GameEvents.PlayerTurnStarted.Add(TXHBalanceBCY.RefreshPlayerCities)
+      -- Last, so the handlers above stay registered even if this fails.
+      adopt_legacy_no_rng_cities()
     end
   end
 end
